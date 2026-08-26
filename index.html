@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>A Bouquet For You</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌻</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Great+Vibes&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ivory:#fdf6e8;
+    --ink:#2b2233;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:'Nunito',system-ui,sans-serif;
+    color:var(--ivory);
+    background:#2a1c12;
+    overflow-x:hidden;
+  }
+  /* ---------- shared scene ---------- */
+  .scene{
+    min-height:100dvh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:32px 20px calc(28px + env(safe-area-inset-bottom));
+    position:relative;overflow:hidden;
+    transition:background 1.2s ease;
+  }
+  .scene::before{ /* sun-glow behind the bouquet */
+    content:"";position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);
+    width:min(80vw,460px);aspect-ratio:1;border-radius:50%;
+    background:radial-gradient(circle, rgba(255,222,150,.26), rgba(255,222,150,0) 70%);
+    pointer-events:none;
+  }
+  /* drifting pollen motes */
+  .mote{
+    position:absolute;width:5px;height:5px;border-radius:50%;
+    background:#ffdf9a;filter:blur(1.5px);opacity:0;
+    animation:drift 9s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes drift{
+    0%,100%{opacity:0;transform:translate(0,0)}
+    20%{opacity:.75}
+    50%{opacity:.35;transform:translate(26px,-48px)}
+    80%{opacity:.6}
+  }
+  /* ---------- card typography ---------- */
+  .kicker{
+    font-size:12px;letter-spacing:.32em;text-transform:uppercase;
+    opacity:.72;font-weight:700;
+  }
+  .for-name{
+    font-family:'Great Vibes',cursive;
+    font-size:clamp(38px,9vw,54px);
+    line-height:1.15;margin:6px 0 4px;
+    text-shadow:0 2px 18px rgba(0,0,0,.28);
+  }
+  .flower-wrap{
+    width:min(74vw,330px);margin:10px auto 4px;position:relative;z-index:1;
+    animation:sway 7s ease-in-out 3.4s infinite;
+    transform-origin:50% 92%;
+    cursor:pointer;
+  }
+  @keyframes sway{
+    0%,100%{transform:rotate(0deg)}
+    30%{transform:rotate(1.4deg)}
+    70%{transform:rotate(-1.2deg)}
+  }
+  .variety{
+    font-family:'Cormorant Garamond',serif;
+    font-size:22px;font-weight:500;letter-spacing:.08em;
+    opacity:0;animation:riseIn 1s ease 2.4s both;
+  }
+  .message{
+    font-family:'Cormorant Garamond',serif;
+    font-size:clamp(20px,5.4vw,26px);line-height:1.5;
+    max-width:34ch;margin:22px auto 0;
+    opacity:0;animation:riseIn 1.2s ease 2.8s both;
+    white-space:pre-wrap;
+  }
+  .card-date{
+    margin-top:26px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+    opacity:0;animation:riseIn 1s ease 3.3s both;
+  }
+  @keyframes riseIn{
+    from{opacity:0;transform:translateY(14px)}
+    to{opacity:.92;transform:translateY(0)}
+  }
+  /* ---------- bloom animation ---------- */
+  .petal-in{
+    transform-box:fill-box;transform-origin:50% 100%;
+    animation:bloom 1.5s cubic-bezier(.22,1.2,.36,1) both;
+  }
+  @keyframes bloom{
+    from{transform:scale(.04) rotate(8deg);opacity:0}
+    30%{opacity:1}
+    to{transform:scale(1) rotate(0deg);opacity:1}
+  }
+  .disc-in{
+    transform-box:fill-box;transform-origin:50% 50%;
+    animation:pop 1s cubic-bezier(.22,1.3,.36,1) both;
+  }
+  @keyframes pop{
+    from{transform:scale(0);opacity:0}
+    to{transform:scale(1);opacity:1}
+  }
+  .stem-in{
+    stroke-dasharray:320;stroke-dashoffset:320;
+    animation:grow 1.1s ease-out both;
+  }
+  @keyframes grow{to{stroke-dashoffset:0}}
+  .leaf-in{
+    transform-box:fill-box;transform-origin:50% 100%;
+    animation:bloom 1s ease-out both;
+  }
+  .wrap-in{
+    transform-box:fill-box;transform-origin:50% 0%;
+    animation:wrapIn .9s cubic-bezier(.22,1.1,.36,1) both;
+  }
+  @keyframes wrapIn{
+    from{opacity:0;transform:scaleY(.55) translateY(-10px)}
+    to{opacity:1;transform:scaleY(1) translateY(0)}
+  }
+  /* falling petals easter egg */
+  .fall-petal{
+    position:absolute;top:28%;left:50%;width:24px;pointer-events:none;z-index:2;
+    animation:fall 3.4s ease-in forwards;
+  }
+  @keyframes fall{
+    from{transform:translate(0,0) rotate(0deg);opacity:1}
+    to{transform:translate(var(--dx,40px),76vh) rotate(var(--dr,300deg));opacity:0}
+  }
+  /* ---------- landing ---------- */
+  .landing-note{
+    font-family:'Cormorant Garamond',serif;font-style:italic;
+    font-size:20px;opacity:.85;margin-top:18px;
+  }
+  /* ---------- studio ---------- */
+  .studio{
+    min-height:100dvh;background:linear-gradient(170deg,#241708,#3d2a12);
+    padding:28px 18px calc(40px + env(safe-area-inset-bottom));
+    max-width:560px;margin:0 auto;
+  }
+  .studio h1{
+    font-family:'Great Vibes',cursive;font-weight:400;
+    font-size:44px;text-align:center;margin-bottom:2px;
+  }
+  .studio .sub{text-align:center;font-size:13px;opacity:.6;margin-bottom:26px;letter-spacing:.06em}
+  .field{margin-bottom:18px}
+  .field label{display:block;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.65;margin-bottom:7px}
+  .field input[type=text],.field input[type=password],.field textarea,.field select,.field input[type=number]{
+    width:100%;padding:13px 14px;border-radius:12px;
+    border:1px solid rgba(255,255,255,.16);
+    background:rgba(255,255,255,.07);color:var(--ivory);
+    font-family:'Nunito',sans-serif;font-size:16px;outline:none;
+  }
+  .field textarea{min-height:96px;resize:vertical;font-family:'Cormorant Garamond',serif;font-size:19px}
+  .field input:focus,.field textarea:focus,.field select:focus{border-color:rgba(255,205,110,.6)}
+  .field select option{color:#222}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .mood-row{display:flex;flex-wrap:wrap;gap:8px}
+  .mood-chip{
+    padding:9px 14px;border-radius:999px;font-size:14px;font-weight:600;
+    border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);
+    color:var(--ivory);cursor:pointer;
+  }
+  .mood-chip.sel{background:rgba(255,196,80,.28);border-color:rgba(255,196,80,.85)}
+  .btn{
+    display:block;width:100%;padding:16px;border-radius:14px;border:none;
+    font-family:'Nunito',sans-serif;font-size:17px;font-weight:700;cursor:pointer;
+    background:linear-gradient(135deg,#f0a92a,#e0611f);color:#fff;
+    box-shadow:0 6px 24px rgba(224,97,31,.35);
+  }
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.25);box-shadow:none;margin-top:10px;font-weight:600}
+  .btn:active{transform:scale(.985)}
+  .preview-box{
+    border-radius:20px;overflow:hidden;margin:6px 0 20px;
+    border:1px solid rgba(255,255,255,.14);
+  }
+  .preview-box .scene{min-height:0;padding:26px 16px 30px}
+  .preview-box .flower-wrap{width:min(54vw,220px)}
+  .preview-box .message{font-size:19px}
+  .toast{
+    position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(80px);
+    background:rgba(28,18,8,.94);border:1px solid rgba(255,255,255,.2);
+    padding:12px 22px;border-radius:999px;font-size:14px;font-weight:600;
+    transition:transform .35s ease;z-index:50;white-space:nowrap;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .gate{
+    min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:24px;text-align:center;background:linear-gradient(170deg,#241708,#3d2a12);
+  }
+  .gate .field{width:min(320px,86vw);margin-top:18px}
+  .gate .btn{width:min(320px,86vw)}
+  .hint{font-size:13px;opacity:.55;margin-top:14px;max-width:40ch;line-height:1.5}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================================================================
+   Daily Sunflower — a tiny bouquet stand.
+   Same shape as Daily Lily: nothing is stored anywhere, the whole
+   bouquet lives inside the link.
+   Routes:  #/studio  → compose (passcode-gated, sender only)
+            #<payload> → a bouquet (all data lives in the link itself)
+            (empty)    → landing
+   ================================================================ */
+
+const SUNS = [
+  { id:"classic", name:"Classic Sunflower", meaning:"warmth & loyalty — always turning toward the light",
+    type:"single", edge:"#ffd84d", base:"#f0a013", disc:"#4a2a12", disc2:"#2b1607", seedA:"#6b3d18", seedB:"#95602a" },
+  { id:"lemon", name:"Lemon Queen", meaning:"a quiet, steady kind of happiness",
+    type:"single", edge:"#fff5bc", base:"#f2d45a", disc:"#5c3a1a", disc2:"#38200e", seedA:"#7a4e22", seedB:"#a4702f" },
+  { id:"autumn", name:"Autumn Beauty", meaning:"the beauty in things that change",
+    type:"single", edge:"#ffb347", base:"#c2451c", disc:"#3f2010", disc2:"#231105", seedA:"#5f3116", seedB:"#87491f" },
+  { id:"moulin", name:"Moulin Rouge", meaning:"a bold thing, said softly",
+    type:"single", edge:"#e4604a", base:"#87202b", disc:"#2c1010", disc2:"#150707", seedA:"#4a1c18", seedB:"#702c23" },
+  { id:"teddy", name:"Teddy Bear", meaning:"softness worth holding on to",
+    type:"fluffy", edge:"#ffdf6b", base:"#eda718", disc:"#e8a415", disc2:"#c4860e", seedA:"#d99a14", seedB:"#f2ba33" },
+  { id:"italian", name:"Italian White", meaning:"gentle beginnings",
+    type:"single", edge:"#fffdf2", base:"#efe4b4", disc:"#4a3018", disc2:"#28180b", seedA:"#6b4a24", seedB:"#946e34" },
+  { id:"giant", name:"Russian Giant", meaning:"growing tall for someone",
+    type:"giant", edge:"#ffd23d", base:"#e5860a", disc:"#43250f", disc2:"#261204", seedA:"#633a16", seedB:"#8d5821" },
+];
+
+const MOODS = {
+  sunny:     { label:"Sunny ☀️",           bg:"linear-gradient(170deg,#2e1e12 0%,#8a4a1e 55%,#dd8f3c 100%)" },
+  morning:   { label:"Good morning 🌤",     bg:"linear-gradient(170deg,#22314a 0%,#6b5a6e 55%,#e0a074 100%)" },
+  thinking:  { label:"Thinking of you 💭",  bg:"linear-gradient(170deg,#2c1836 0%,#6b3a3c 55%,#c47a45 100%)" },
+  proud:     { label:"Proud of you ✨",     bg:"linear-gradient(170deg,#33230f 0%,#75521c 60%,#c69938 100%)" },
+  cheerup:   { label:"Cheer up 🌈",         bg:"linear-gradient(170deg,#173028 0%,#3c6b46 60%,#9aab4a 100%)" },
+  goodnight: { label:"Goodnight 🌙",        bg:"linear-gradient(170deg,#141a33 0%,#3a3560 58%,#7a5a72 100%)" },
+};
+const DEFAULT_MOOD = "sunny";
+
+/* Bouquet sizes. Each arrangement is ordered BACK → FRONT, so the last
+   entry is the hero bloom the eye lands on. [x, y, scale] */
+const ARRANGE = {
+  3: [[-42,-10,.80],[42,-6,.78],[0,-40,1.0]],
+  5: [[-62,2,.70],[62,6,.68],[-34,-30,.84],[36,-26,.82],[0,-54,1.0]],
+  7: [[-76,12,.60],[76,16,.58],[-50,-16,.72],[52,-12,.70],[-24,-42,.86],[26,-38,.84],[0,-62,1.0]],
+};
+const SIZE_LABEL = { 3:"a small handful", 5:"a proper bouquet", 7:"an armful" };
+
+/* ---------------- sunflower SVG builders ---------------- */
+
+function petalPath(kind){
+  if(kind==="fluffy")
+    return "M0,-4 C-10,-14 -13,-32 -7,-44 C-4,-50 4,-50 7,-44 C13,-32 10,-14 0,-4 Z";
+  return "M0,-2 C-8,-14 -11,-38 -5,-58 C-3,-64 0,-66 0,-66 C0,-66 3,-64 5,-58 C11,-38 8,-14 0,-2 Z";
+}
+
+/* Seed head laid out on the golden angle, the way a real one grows. */
+function seeds(v, r, n){
+  let s="";
+  const golden = Math.PI * (3 - Math.sqrt(5));
+  for(let i=0;i<n;i++){
+    const rr = r * Math.sqrt((i+0.5)/n);
+    const a  = i * golden;
+    const x  = (rr*Math.cos(a)).toFixed(2);
+    const y  = (rr*Math.sin(a)).toFixed(2);
+    const sz = (0.8 + 1.5*(i/n)).toFixed(2);
+    s += `<circle cx="${x}" cy="${y}" r="${sz}" fill="${i%3===0?v.seedB:v.seedA}" opacity=".8"/>`;
+  }
+  return s;
+}
+
+function headDefs(v, uid){
+  return `
+  <linearGradient id="pg_${uid}" x1="0" y1="1" x2="0" y2="0">
+    <stop offset="0%" stop-color="${v.base}"/>
+    <stop offset="72%" stop-color="${v.edge}"/>
+    <stop offset="100%" stop-color="${v.edge}"/>
+  </linearGradient>
+  <radialGradient id="dg_${uid}" cx="38%" cy="34%" r="72%">
+    <stop offset="0%" stop-color="${v.disc}"/>
+    <stop offset="100%" stop-color="${v.disc2}"/>
+  </radialGradient>`;
+}
+
+function headPetal(v, uid, rot, scale, delay, kind){
+  const vein = kind==="fluffy" ? "" :
+    `<path d="M0,-6 C-1,-24 -1,-42 0,-56" fill="none" stroke="${v.base}" stroke-opacity=".3" stroke-width="1.1"/>`;
+  return `<g transform="rotate(${rot}) scale(${scale})"><g class="petal-in" style="animation-delay:${delay}ms">
+    <path d="${petalPath(kind)}" fill="url(#pg_${uid})" stroke="${v.base}" stroke-opacity=".35" stroke-width="1"/>
+    ${vein}
+  </g></g>`;
+}
+
+function headBody(v, uid, t0){
+  let s="";
+  if(v.type==="fluffy"){
+    /* Teddy Bear: no open seed head, just rings of short blunt petals. */
+    for(let i=0;i<14;i++) s += headPetal(v, uid, i*(360/14),        1,   t0+i*32,     "fluffy");
+    for(let i=0;i<14;i++) s += headPetal(v, uid, 12.8+i*(360/14),  .82,  t0+220+i*30, "fluffy");
+    for(let i=0;i<12;i++) s += headPetal(v, uid, 6+i*30,           .58,  t0+430+i*28, "fluffy");
+    for(let i=0;i<9;i++)  s += headPetal(v, uid, 20+i*40,          .34,  t0+620+i*26, "fluffy");
+    s += `<g class="disc-in" style="animation-delay:${t0+780}ms">
+      <circle r="9" fill="url(#dg_${uid})"/>${seeds(v, 8, 26)}</g>`;
+    return s;
+  }
+  const big   = v.type==="giant";
+  const outer = big ? 19 : 15;
+  const discR = big ? 30 : 24;
+  const pScale= big ? 1.08 : 1;
+  const step  = 360/outer;
+  for(let i=0;i<outer;i++) s += headPetal(v, uid, i*step,          pScale,     t0+i*34,     "single");
+  for(let i=0;i<outer;i++) s += headPetal(v, uid, step/2+i*step,   pScale*.82, t0+240+i*32, "single");
+  s += `<g class="disc-in" style="animation-delay:${t0+520}ms">
+    <circle r="${discR}" fill="url(#dg_${uid})"/>
+    ${seeds(v, discR-3, big ? 150 : 110)}
+    <circle r="${discR}" fill="none" stroke="${v.base}" stroke-opacity=".45" stroke-width="2.5"/>
+  </g>`;
+  return s;
+}
+
+function leaf(x, y, flip, delay){
+  return `<g transform="translate(${x},${y}) scale(${flip},1)">
+    <g class="leaf-in" style="animation-delay:${delay}ms">
+      <path d="M0,0 C22,-12 44,-6 56,12 C36,22 10,18 0,0 Z" fill="#4a8a4a"/>
+      <path d="M2,2 C20,2 38,8 52,14" fill="none" stroke="#2f6b34" stroke-opacity=".55" stroke-width="1.6"/>
+    </g></g>`;
+}
+
+/* The paper cone + ribbon that makes it a bouquet rather than a patch.
+   The ribbon borrows the hero bloom's colour so every bouquet is tied
+   in its own shade. */
+function wrapMarkup(hero){
+  return `
+  <g class="wrap-in" style="animation-delay:640ms">
+    <path d="M-68,68 C-52,108 -26,148 -10,180 L10,180 C26,148 52,108 68,68 C42,82 -42,82 -68,68 Z" fill="url(#paperGrad)"/>
+    <g stroke="rgba(92,62,22,.24)" stroke-width="1.2" fill="none">
+      <path d="M-44,78 C-34,114 -18,150 -8,180"/>
+      <path d="M-16,82 C-13,120 -8,154 -4,180"/>
+      <path d="M18,82 C14,120 9,154 5,180"/>
+      <path d="M46,78 C36,114 20,150 9,180"/>
+    </g>
+    <path d="M-68,68 C-42,80 42,80 68,68 C42,88 -42,88 -68,68 Z" fill="rgba(255,246,222,.28)"/>
+    <path d="M10,180 C26,148 52,108 68,68 C56,80 44,84 42,84 C34,120 22,152 10,180 Z" fill="rgba(80,52,18,.13)"/>
+  </g>
+  <g class="wrap-in" style="animation-delay:880ms">
+    <path d="M-45,110 C-22,122 22,122 45,110 L41,132 C19,142 -19,142 -41,132 Z" fill="${hero.base}"/>
+    <path d="M-45,110 C-22,122 22,122 45,110 L44,116 C22,128 -22,128 -44,116 Z" fill="rgba(0,0,0,.18)"/>
+    <path d="M-2,118 C-22,103 -41,106 -39,121 C-37,134 -16,131 -2,123 Z" fill="${hero.edge}" opacity=".95"/>
+    <path d="M2,118 C22,103 41,106 39,121 C37,134 16,131 2,123 Z" fill="${hero.edge}" opacity=".95"/>
+    <path d="M-4,125 C-9,141 -13,152 -19,160 L-7,157 C-4,147 -2,135 -2,127 Z" fill="${hero.base}"/>
+    <path d="M4,125 C9,141 13,152 19,160 L7,157 C4,147 2,135 2,127 Z" fill="${hero.base}"/>
+    <circle cx="0" cy="121" r="5.5" fill="${hero.edge}"/>
+  </g>`;
+}
+
+function buildBouquetSVG(list){
+  const n    = list.length;
+  const arr  = ARRANGE[n] || ARRANGE[5];
+  const hero = list[n-1];
+  let defs = `<linearGradient id="paperGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#c2a173"/>
+      <stop offset="40%" stop-color="#f0dcb2"/>
+      <stop offset="100%" stop-color="#ad8b5c"/>
+    </linearGradient>`;
+  let stems="", heads="";
+
+  arr.forEach((pos,i)=>{
+    const [x,y,s] = pos;
+    const v   = list[i];
+    const uid = `${v.id}_${i}`;
+    defs  += headDefs(v, uid);
+    stems += `<path class="stem-in" style="animation-delay:${i*90}ms"
+      d="M${x},${(y+14).toFixed(1)} Q${(x*0.5).toFixed(1)},${((y+112)/2).toFixed(1)} 0,110"
+      fill="none" stroke="#3f7a44" stroke-width="${(3.4+1.8*s).toFixed(1)}" stroke-linecap="round"/>`;
+    /* back blooms sit a touch dimmer so the bouquet reads with depth */
+    const op = (0.84 + 0.16*(n>1 ? i/(n-1) : 1)).toFixed(2);
+    heads += `<g transform="translate(${x},${y}) scale(${s})" opacity="${op}">${headBody(v, uid, 820+i*130)}</g>`;
+  });
+
+  const leaves = `${leaf(-30,66,1,700)}${leaf(30,72,-1,820)}${leaf(-14,52,-1,940)}`;
+
+  return `<svg viewBox="-124 -138 248 322" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;overflow:visible">
+    <defs>${defs}</defs>
+    <g>${stems}${leaves}${wrapMarkup(hero)}${heads}</g>
+  </svg>`;
+}
+
+/* ---------------- bouquet composition ---------------- */
+
+/* Mixed bouquets have to look the same in the studio preview and in her
+   link, so the varieties are derived from the bouquet number rather than
+   from Math.random(). */
+function seededVarieties(seed, n){
+  let s = ((seed+1) * 2654435761) >>> 0;
+  const rnd = ()=>{ s^=s<<13; s>>>=0; s^=s>>>17; s^=s<<5; s>>>=0; return s/4294967296; };
+  let pool = SUNS.slice(), out = [];
+  for(let i=0;i<n;i++){
+    if(!pool.length) pool = SUNS.slice();
+    out.push(pool.splice(Math.floor(rnd()*pool.length),1)[0]);
+  }
+  return out;
+}
+
+function bouquetFor(p){
+  const n = ARRANGE[p.c] ? p.c : 5;
+  if(p.v === "mix") return seededVarieties(p.n||1, n);
+  const v = SUNS.find(s=>s.id===p.v) || SUNS[0];
+  return Array(n).fill(v);
+}
+
+/* ---------------- payload encode / decode ---------------- */
+
+function encodePayload(o){
+  const json = JSON.stringify(o);
+  return btoa(unescape(encodeURIComponent(json)))
+    .replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function decodePayload(s){
+  try{
+    s = s.replace(/-/g,"+").replace(/_/g,"/");
+    while(s.length % 4) s += "=";
+    return JSON.parse(decodeURIComponent(escape(atob(s))));
+  }catch(e){ return null; }
+}
+
+/* ---------------- rendering ---------------- */
+
+function motes(n){
+  let h="";
+  for(let i=0;i<n;i++){
+    h += `<div class="mote" style="left:${8+Math.random()*84}%;top:${10+Math.random()*70}%;animation-delay:${(Math.random()*8).toFixed(1)}s;animation-duration:${(7+Math.random()*6).toFixed(1)}s"></div>`;
+  }
+  return h;
+}
+
+function bouquetLabel(list){
+  const ids = [...new Set(list.map(v=>v.id))];
+  if(ids.length === 1) return list[0].name;
+  return "A mixed bouquet";
+}
+
+function renderCard(p, host){
+  const list = bouquetFor(p);
+  const mood = MOODS[p.md] || MOODS[DEFAULT_MOOD];
+  const dateStr = p.d ? new Date(p.d+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"}) : "";
+  host.innerHTML = `
+  <div class="scene" style="background:${mood.bg}">
+    ${motes(9)}
+    <div class="kicker">🌻 &nbsp;Bouquet No. ${p.n||1}&nbsp; 🌻</div>
+    <div class="for-name">for ${escapeHtml(p.to||"you")}</div>
+    <div class="flower-wrap" id="flowerTap">${buildBouquetSVG(list)}</div>
+    <div class="variety">${escapeHtml(bouquetLabel(list))}</div>
+    ${p.m ? `<div class="message">“${escapeHtml(p.m)}”</div>` : ""}
+    <div class="card-date">${dateStr}</div>
+  </div>`;
+  const fw = host.querySelector("#flowerTap");
+  const scene = host.querySelector(".scene");
+  fw.addEventListener("click", ()=> dropPetals(scene, list));
+}
+
+function dropPetals(scene, list){
+  for(let i=0;i<9;i++){
+    const v = list[Math.floor(Math.random()*list.length)];
+    const el = document.createElement("div");
+    el.className = "fall-petal";
+    el.style.setProperty("--dx", (Math.random()*240-120)+"px");
+    el.style.setProperty("--dr", (Math.random()*520-260)+"deg");
+    el.style.animationDelay = (Math.random()*0.5)+"s";
+    el.innerHTML = `<svg viewBox="-16 -70 32 74"><path d="${petalPath(v.type==="fluffy"?"fluffy":"single")}" fill="${v.edge}" opacity=".9"/></svg>`;
+    scene.appendChild(el);
+    setTimeout(()=>el.remove(), 4200);
+  }
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* ---------------- landing ---------------- */
+
+function renderLanding(host){
+  const list = [SUNS[1],SUNS[1],SUNS[0],SUNS[0],SUNS[0]];
+  host.innerHTML = `
+  <div class="scene" style="background:linear-gradient(170deg,#2a1c12 0%,#5c3a1e 60%,#8a5c2c 100%)">
+    ${motes(7)}
+    <div class="flower-wrap">${buildBouquetSVG(list)}</div>
+    <div class="landing-note">a little sunflower stand… 🌻</div>
+  </div>`;
+}
+
+/* ---------------- studio ---------------- */
+
+const LS = {
+  unlocked:"ds_unlocked",
+  name:"ds_name", count:"ds_count", mood:"ds_mood", size:"ds_size", last:"ds_lastSent"
+};
+
+/* Studio passcode — baked into the file so no device can self-enroll.
+   Same one as Daily Lily. To change it: unlock the studio, run
+   hashStr("your-new-passcode") in the console, paste the result here. */
+function hashStr(s){ let h=5381; for(const c of s) h=(h*33 ^ c.codePointAt(0))>>>0; return h.toString(36); }
+const PASS_HASH = "1d7j80";
+
+/* "Surprise me": random variety, but never the same one as the last
+   bouquet sent. Rolled once per studio visit so the preview doesn't
+   shuffle around while he's typing. */
+let surprisePick = null;
+function rollSurprise(){
+  const last = localStorage.getItem(LS.last);
+  const pool = SUNS.filter(s=>s.id!==last);
+  surprisePick = pool[Math.floor(Math.random()*pool.length)];
+  return surprisePick;
+}
+
+function renderGate(host){
+  host.innerHTML = `
+  <div class="gate">
+    <div style="font-size:44px">🌻</div>
+    <h1 style="font-family:'Great Vibes',cursive;font-weight:400;font-size:42px;margin-top:6px">The Stand</h1>
+    <div class="field">
+      <label>Passcode</label>
+      <input type="password" id="pc" autocomplete="off" placeholder="••••••">
+    </div>
+    <button class="btn" id="go">Enter</button>
+    <div class="hint">Only the florist may enter 🌿</div>
+  </div>`;
+  const input = host.querySelector("#pc");
+  host.querySelector("#go").addEventListener("click", ()=>{
+    const val = input.value.trim();
+    if(!val){ toast("Type a passcode first"); return; }
+    if(hashStr(val) === PASS_HASH){
+      localStorage.setItem(LS.unlocked, "1");
+      renderStudio(host);
+    }else{
+      toast("Hmm, that's not it 🌻");
+    }
+  });
+  input.addEventListener("keydown", e=>{ if(e.key==="Enter") host.querySelector("#go").click(); });
+}
+
+function currentPayload(){
+  const name = document.getElementById("herName").value.trim() || "you";
+  const num  = parseInt(document.getElementById("bqNum").value,10) || 1;
+  const size = parseInt(document.getElementById("sizeSel").value,10) || 5;
+  const sel  = document.getElementById("varietySel").value;
+  let vId;
+  if(sel === "auto")      vId = (surprisePick || rollSurprise()).id;
+  else if(sel === "mix")  vId = "mix";
+  else                    vId = sel;
+  const mood = document.querySelector(".mood-chip.sel")?.dataset.mood || DEFAULT_MOOD;
+  const msg  = document.getElementById("msg").value.trim();
+  const today = new Date();
+  const dISO  = today.getFullYear()+"-"+String(today.getMonth()+1).padStart(2,"0")+"-"+String(today.getDate()).padStart(2,"0");
+  return { n:num, to:name, v:vId, c:size, md:mood, m:msg, d:dISO };
+}
+
+function cardURL(p){
+  return location.origin + location.pathname + "#" + encodePayload(p);
+}
+
+function renderStudio(host){
+  rollSurprise();
+  const savedName = localStorage.getItem(LS.name) || "Bristi";
+  const nextNum   = (parseInt(localStorage.getItem(LS.count),10) || 0) + 1;
+  const savedMood = localStorage.getItem(LS.mood) || DEFAULT_MOOD;
+  const savedSize = localStorage.getItem(LS.size) || "5";
+
+  host.innerHTML = `
+  <div class="studio">
+    <h1>The Stand</h1>
+    <div class="sub">where today's bouquet gets tied 🌻</div>
+
+    <div class="row2">
+      <div class="field">
+        <label>Her name</label>
+        <input type="text" id="herName" value="${escapeHtml(savedName)}" placeholder="Bristi… or cutie">
+      </div>
+      <div class="field">
+        <label>Bouquet No.</label>
+        <input type="number" id="bqNum" value="${nextNum}" min="1">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Today's sunflowers</label>
+      <select id="varietySel">
+        <option value="auto">Surprise me 🎲</option>
+        <option value="mix">Mixed bouquet 💐</option>
+        ${SUNS.map(s=>`<option value="${s.id}">${s.name} — ${s.meaning.split("—")[0].trim()}</option>`).join("")}
+      </select>
+    </div>
+
+    <div class="field">
+      <label>How many stems</label>
+      <select id="sizeSel">
+        ${[3,5,7].map(k=>`<option value="${k}" ${String(k)===savedSize?"selected":""}>${k} stems — ${SIZE_LABEL[k]}</option>`).join("")}
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Mood</label>
+      <div class="mood-row">
+        ${Object.entries(MOODS).map(([k,m])=>
+          `<button type="button" class="mood-chip ${k===savedMood?"sel":""}" data-mood="${k}">${m.label}</button>`).join("")}
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Your message for today</label>
+      <textarea id="msg" maxlength="280" placeholder="something small and true…"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Preview</label>
+      <div class="preview-box"><div id="preview"></div></div>
+    </div>
+
+    <button class="btn" id="shareBtn">Send today's bouquet 🌻</button>
+    <button class="btn ghost" id="copyBtn">Copy link instead</button>
+  </div>`;
+
+  const refresh = ()=> renderCard(currentPayload(), document.getElementById("preview"));
+
+  ["herName","bqNum","msg"].forEach(id=>
+    document.getElementById(id).addEventListener("input", debounce(refresh, 350)));
+  document.getElementById("herName").addEventListener("input", e=>{
+    const v = e.target.value.trim();
+    if(v) localStorage.setItem(LS.name, v);
+  });
+  document.getElementById("varietySel").addEventListener("change", refresh);
+  document.getElementById("sizeSel").addEventListener("change", refresh);
+  host.querySelectorAll(".mood-chip").forEach(ch=>
+    ch.addEventListener("click", ()=>{
+      host.querySelectorAll(".mood-chip").forEach(c=>c.classList.remove("sel"));
+      ch.classList.add("sel");
+      refresh();
+    }));
+
+  function commitSend(p){
+    localStorage.setItem(LS.last, p.v);
+    localStorage.setItem(LS.count, String(p.n));
+    localStorage.setItem(LS.mood, p.md);
+    localStorage.setItem(LS.size, String(p.c));
+    document.getElementById("bqNum").value = p.n + 1;
+    rollSurprise();
+    refresh();
+  }
+
+  document.getElementById("shareBtn").addEventListener("click", async ()=>{
+    const p = currentPayload();
+    const url = cardURL(p);
+    if(navigator.share){
+      try{
+        await navigator.share({ title:"A bouquet for you 🌻", text:"I picked these for you —", url });
+        commitSend(p);
+        toast("Bouquet No. "+p.n+" sent 🌻");
+      }catch(e){ /* user cancelled share sheet */ }
+    }else{
+      await copyText(url);
+      commitSend(p);
+      toast("Link copied — paste it to her 🌻");
+    }
+  });
+
+  document.getElementById("copyBtn").addEventListener("click", async ()=>{
+    const p = currentPayload();
+    await copyText(cardURL(p));
+    commitSend(p);
+    toast("Link copied — paste it to her 🌻");
+  });
+
+  refresh();
+}
+
+async function copyText(t){
+  try{ await navigator.clipboard.writeText(t); }
+  catch(e){
+    const ta=document.createElement("textarea");
+    ta.value=t; document.body.appendChild(ta); ta.select();
+    document.execCommand("copy"); ta.remove();
+  }
+}
+
+function debounce(fn,ms){ let t; return (...a)=>{clearTimeout(t); t=setTimeout(()=>fn(...a),ms);} }
+
+let toastTimer;
+function toast(msg){
+  const el=document.getElementById("toast");
+  el.textContent=msg; el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove("show"), 2600);
+}
+
+/* ---------------- router ---------------- */
+
+function route(){
+  const app = document.getElementById("app");
+  const hash = location.hash.replace(/^#/,"");
+  if(hash === "/studio"){
+    if(localStorage.getItem(LS.unlocked)==="1") renderStudio(app);
+    else renderGate(app);
+    return;
+  }
+  if(hash){
+    const p = decodePayload(hash);
+    if(p && (p.v || p.m)){ renderCard(p, app); return; }
+  }
+  renderLanding(app);
+}
+
+window.addEventListener("hashchange", route);
+route();
+</script>
+</body>
+</html>
