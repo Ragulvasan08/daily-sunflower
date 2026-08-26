@@ -70,21 +70,16 @@
     30%{transform:rotate(1.4deg)}
     70%{transform:rotate(-1.2deg)}
   }
-  .variety{
-    font-family:'Cormorant Garamond',serif;
-    font-size:22px;font-weight:500;letter-spacing:.08em;
-    opacity:0;animation:riseIn 1s ease 2.4s both;
-  }
   .message{
     font-family:'Cormorant Garamond',serif;
     font-size:clamp(20px,5.4vw,26px);line-height:1.5;
     max-width:34ch;margin:22px auto 0;
-    opacity:0;animation:riseIn 1.2s ease 2.8s both;
+    opacity:0;animation:riseIn 1.2s ease 2.5s both;
     white-space:pre-wrap;
   }
   .card-date{
     margin-top:26px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;
-    opacity:0;animation:riseIn 1s ease 3.3s both;
+    opacity:0;animation:riseIn 1s ease 3.0s both;
   }
   @keyframes riseIn{
     from{opacity:0;transform:translateY(14px)}
@@ -437,12 +432,6 @@ function motes(n){
   return h;
 }
 
-function bouquetLabel(list){
-  const ids = [...new Set(list.map(v=>v.id))];
-  if(ids.length === 1) return list[0].name;
-  return "A mixed bouquet";
-}
-
 function renderCard(p, host){
   const list = bouquetFor(p);
   const mood = MOODS[p.md] || MOODS[DEFAULT_MOOD];
@@ -453,7 +442,6 @@ function renderCard(p, host){
     <div class="kicker">🌻 &nbsp;Bouquet No. ${p.n||1}&nbsp; 🌻</div>
     <div class="for-name">for ${escapeHtml(p.to||"you")}</div>
     <div class="flower-wrap" id="flowerTap">${buildBouquetSVG(list)}</div>
-    <div class="variety">${escapeHtml(bouquetLabel(list))}</div>
     ${p.m ? `<div class="message">“${escapeHtml(p.m)}”</div>` : ""}
     <div class="card-date">${dateStr}</div>
   </div>`;
